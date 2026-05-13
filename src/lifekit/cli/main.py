@@ -90,5 +90,21 @@ def cmd_refresh(dry_run: bool) -> None:
     click.echo(f"inferred gaps in gaps.md: {result['inferred_gaps']}")
 
 
+@cli.command("emit")
+@click.argument("target_format", type=click.Choice(["langgraph-workflows"]))
+@click.option("--to", "out_path", type=click.Path(path_type=Path), required=True,
+              help="Output file path (e.g. ~/projects/dev-agent/workflows.yaml)")
+@click.option("--timezone", default="Europe/Dublin", show_default=True)
+def cmd_emit(target_format: str, out_path: Path, timezone: str) -> None:
+    """Emit canonical workflows.yaml into a runtime-specific format."""
+    if target_format == "langgraph-workflows":
+        from ..emitters.langgraph import emit
+        path, n = emit(out_path.expanduser(), timezone=timezone)
+        click.echo(f"wrote {path}")
+        click.echo(f"  enabled routines: {n}")
+        if n == 0:
+            click.echo("  (no routines enabled — emitter wrote empty workflows list)")
+
+
 if __name__ == "__main__":
     cli()
