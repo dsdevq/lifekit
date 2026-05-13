@@ -5,19 +5,40 @@ build-backend = "hatchling.build"
 [project]
 name = "lifekit"
 version = "0.0.1"
-description = "A file-based framework for building your own persistent AI collaborator"
+description = "A file-based framework for building your own persistent AI collaborator. Markdown + YAML knowledge layer, bring-your-own runtime, anti-lock-in adapter discipline."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "Denys Sychov" }]
-keywords = ["ai", "agent", "personal-assistant", "markdown", "memory"]
+keywords = [
+    "ai",
+    "agent",
+    "personal-assistant",
+    "markdown",
+    "memory",
+    "llm",
+    "knowledge-management",
+    "langgraph",
+]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
     "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed",
 ]
 dependencies = [
     "PyYAML>=6.0",
@@ -25,14 +46,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.5"]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+llm = [
+    "anthropic>=0.34",
+]
 
 [project.scripts]
 lifekit = "lifekit.cli.main:cli"
 
 [project.urls]
 Homepage = "https://github.com/dsdevq/lifekit"
-Issues = "https://github.com/dsdevq/lifekit/issues"
+Documentation = "https://github.com/dsdevq/lifekit/blob/main/docs/getting-started.md"
+Repository = "https://github.com/dsdevq/lifekit"
+"Bug Tracker" = "https://github.com/dsdevq/lifekit/issues"
+Philosophy = "https://github.com/dsdevq/lifekit/blob/main/docs/philosophy.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lifekit"]
@@ -46,3 +76,14 @@ include = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "PL", "RUF"]
+ignore = ["PLR0913", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR2004", "S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
