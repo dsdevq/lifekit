@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lifekit"
+version = "0.0.1"
+description = "A file-based framework for building your own persistent AI collaborator"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Denys Sychov" }]
+keywords = ["ai", "agent", "personal-assistant", "markdown", "memory"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "PyYAML>=6.0",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.scripts]
+lifekit = "lifekit.cli.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/dsdevq/lifekit"
+Issues = "https://github.com/dsdevq/lifekit/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lifekit"]
+
+[tool.hatch.build]
+include = [
+    "src/lifekit/**/*.py",
+    "templates/**/*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

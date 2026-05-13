@@ -1,0 +1,100 @@
+# ~/.life/routines/workflows.yaml
+# Cron defs for proactive routines.
+# All start `enabled: false`. Enable them deliberately.
+#
+# schema:
+#   name: stable identifier
+#   cron: 5-field crontab spec
+#   prompt: instruction to your orchestrator
+#   reads: domain/system files the routine should load
+#   output: telegram | journal | proposals | silent
+#   enabled: true|false
+
+routines:
+  - name: morning_brief
+    cron: "30 7 * * *"
+    prompt: |
+      Compose the morning brief.
+      Surface: today's calendar, pending RSVPs from commitments.md,
+      curated news digest filtered by topics.yaml,
+      breakfast suggestion from health.md,
+      and any scout findings since last brief.
+      Keep total under 25 lines.
+    reads:
+      - domains/commitments.md
+      - domains/health.md
+      - domains/engineering.md
+      - domains/learning.md
+      - topics.yaml
+      - scout/ledger.md
+    output: telegram
+    enabled: false
+
+  - name: bedtime_brief
+    cron: "0 22 * * *"
+    prompt: |
+      Compose the bedtime brief.
+      Surface: tomorrow's calendar, open commitments needing action,
+      anything captured in today's queue.jsonl that wasn't curated yet.
+      One question to seed tomorrow's first thought.
+    reads:
+      - domains/commitments.md
+      - journal/today
+      - queue.jsonl
+    output: telegram
+    enabled: false
+
+  - name: news_fetch
+    cron: "0 7 * * *"
+    prompt: |
+      Fetch and pre-cluster news per topics.yaml.
+      Write digest to a scratch file consumed by morning_brief.
+    reads:
+      - topics.yaml
+    output: silent
+    enabled: false
+
+  - name: curator_drain
+    cron: "*/20 * * * *"
+    prompt: |
+      Drain queue.jsonl. For each event, route to the appropriate domain file
+      (idea -> ideas.md, food -> health.md, commitment -> commitments.md, etc.)
+      and append. Mark drained items as processed.
+    reads:
+      - queue.jsonl
+      - domains/*.md
+    output: silent
+    enabled: false
+
+  - name: scout_morning
+    cron: "15 7 * * *"
+    prompt: |
+      Run scout pass with system + personal-tooling lenses.
+      Score against system/architecture.md, system/gaps.md, engineering.md, learning.md.
+      Worthwhile findings -> system/proposals.md (status: new).
+      Append summary to scout/ledger.md.
+      Output ~10 items max; piggybacks morning brief.
+    reads:
+      - scout/sources.yaml
+      - system/architecture.md
+      - system/gaps.md
+      - domains/engineering.md
+      - domains/learning.md
+      - scout/ledger.md
+    output: silent
+    enabled: false
+
+  - name: scout_evening
+    cron: "0 20 * * *"
+    prompt: |
+      Evening scout pass. Dedup against ledger entries from scout_morning.
+      Send telegram digest ONLY if there is new signal — empty digest = no message.
+    reads:
+      - scout/sources.yaml
+      - system/architecture.md
+      - system/gaps.md
+      - domains/engineering.md
+      - domains/learning.md
+      - scout/ledger.md
+    output: telegram
+    enabled: false

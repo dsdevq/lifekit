@@ -1,0 +1,35 @@
+# ~/.life/scout/sources.yaml
+# Hand-curated source list for scout. Curation IS the filter.
+# Quality > breadth. Prune ruthlessly; the ledger tells you what earns its keep.
+
+reddit:
+  # specific subs only — avoid hype-heavy ones
+  []
+
+people:
+  blogs:
+    # RSS/Atom URLs of authors whose takes have track records you trust
+    []
+
+github:
+  trending:
+    languages: []
+    min_stars: 200
+    min_age_days: 7   # avoid same-day hype
+    topics: []
+
+arxiv:
+  categories: []
+  filter: prefer recent, well-cited, applied (not pure theory)
+
+newsletters:
+  []
+
+hackernews:
+  filter: any
+  min_points: 100
+  max_age_days: 7
+
+# Lenses applied during scoring (defined in scout routine):
+#   system_lens: score against system/architecture.md + system/gaps.md
+#   personal_tooling_lens: score against domains/engineering.md + domains/learning.md

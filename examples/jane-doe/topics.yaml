@@ -1,0 +1,18 @@
+# ~/.life/topics.yaml
+# Filter spec for the general news digest in morning_brief.
+# Distinct from scout (which is self-improvement focused).
+
+topics:
+  # name: { keywords: [...], weight: 0..1 }
+  example_topic:
+    keywords: []
+    weight: 1.0
+
+# Max items in the digest section of morning_brief.
+max_items: 8
+
+# Sources fed into the news_fetch routine.
+# Keep this list short — quality > breadth.
+sources:
+  - type: rss
+    url: https://news.ycombinator.com/rss

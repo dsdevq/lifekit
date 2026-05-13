@@ -1,0 +1,1 @@
+{"_schema_doc": "Each line is a JSON event. Fields: ts (ISO-8601 UTC), source (channel|claude|cron|manual), type (idea|fact|commitment|food|decision|other), content (string), routing_hint (string or null). Curator drains this file periodically, appends to target domains, and rewrites the file with processed=true on consumed lines. Append-only between curator runs."}
