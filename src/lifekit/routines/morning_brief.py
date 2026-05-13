@@ -33,13 +33,22 @@ def _strip_frontmatter(text: str) -> str:
     return text
 
 
-def _section(text: str, header: str) -> str:
+def _section(text: str, header: str, level: int = 2) -> str:
+    """Extract a markdown section by header at the given level.
+
+    A section ends at the next header of the same OR shallower level.
+    Example: a `## X` section ends at the next `## Y` or top of file; a
+    `### Sub` section ends at the next `### Other` or any `## Top`.
+    """
     body = _strip_frontmatter(text)
-    m = re.search(rf"(?im)^##\s+{re.escape(header)}\s*$", body)
+    marker = "#" * level
+    m = re.search(rf"(?im)^{marker}\s+{re.escape(header)}\s*$", body)
     if not m:
         return ""
     start = m.end()
-    nxt = re.search(r"(?im)^##\s+", body[start:])
+    # find next header of level <= current
+    levels = "|".join("#" * lv for lv in range(1, level + 1))
+    nxt = re.search(rf"(?im)^(?:{levels})\s+", body[start:])
     end = start + nxt.start() if nxt else len(body)
     return body[start:end].strip()
 
@@ -84,14 +93,41 @@ def _news_section(root: Path) -> list[str]:
 
 def _breakfast_section(root: Path) -> list[str]:
     text = _read(root / "domains" / "health.md")
-    lines = _non_placeholder_lines(_section(text, "Nutrition"))
-    if not lines:
-        return ["_(no nutrition profile yet — fill health.md `## Nutrition` to enable suggestions)_"]
-    return [
-        "Based on profile in health.md:",
-        *(f"  {line}" for line in lines[:3]),
-        "→ Suggestion: see profile (LLM-driven suggestion lands here at runtime activation).",
-    ]
+    if not text:
+        return ["_(no health.md found — fill it to enable suggestions)_"]
+
+    nutrition = _section(text, "Nutrition", level=2)
+    if not nutrition:
+        return ["_(no `## Nutrition` section in health.md)_"]
+
+    out: list[str] = []
+
+    # Goals summary — first line of `### Goals` that mentions Mode
+    goals = _section(nutrition, "Goals", level=3)
+    mode_match = re.search(r"\*\*Mode:\*\*\s*([^\n]+)", goals)
+    if mode_match:
+        out.append(f"Mode: {mode_match.group(1).strip()}")
+    protein_match = re.search(r"\*\*Protein target:\*\*\s*([^\n]+)", goals)
+    if protein_match:
+        out.append(f"Protein target: {protein_match.group(1).strip()}")
+
+    # Typical breakfast pattern — first paragraph under `**Breakfast (typical):**`
+    prefs = _section(nutrition, "Preferences — what I actually eat", level=3)
+    if not prefs:
+        prefs = _section(nutrition, "Preferences", level=3)
+    if prefs:
+        m = re.search(r"\*\*Breakfast[^\*]*\*\*\s*(.*?)(?=\n\*\*|\Z)", prefs, flags=re.DOTALL)
+        if m:
+            options = [ln.strip() for ln in m.group(1).strip().splitlines() if ln.strip().startswith("-")]
+            if options:
+                out.append("Typical breakfast options:")
+                out.extend(f"  {ln}" for ln in options[:3])
+
+    if not out:
+        return ["_(nutrition profile present but no goals/breakfast captured — fill those subsections)_"]
+
+    out.append("→ Suggestion composed by orchestrator at runtime; static brief stops here.")
+    return out
 
 
 def _scout_section(root: Path) -> list[str]:
