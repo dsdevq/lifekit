@@ -1,5 +1,10 @@
 # lifekit
 
+[![CI](https://github.com/dsdevq/lifekit/actions/workflows/test.yml/badge.svg)](https://github.com/dsdevq/lifekit/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Status](https://img.shields.io/badge/status-pre--alpha-orange.svg)](#status)
+
 **A file-based framework for building your own persistent AI collaborator.**
 
 Most "personal AI" projects bundle the assistant *and* the user's data into one runtime. lifekit takes the opposite stance: your knowledge is plain Markdown in a directory, and the AI runtime is replaceable plumbing on top.
@@ -24,6 +29,14 @@ lifekit owns the **knowledge layer** — schemas, templates, scout, curator, rou
 ## Status
 
 🚧 **Pre-alpha skeleton.** The core schemas and static-portion scripts work; runtime wiring is per-adopter. Not yet released.
+
+## Why now
+
+Most personal-AI tools couple memory to the runtime — your "memory" lives inside whichever chatbot you happen to use this month. Change tools and you start over. lifekit takes the opposite stance: memory is a directory of Markdown files you own, and the runtime is replaceable plumbing on top. The format outlives the tooling.
+
+The other thing personal-AI tools get wrong is reaching for vector RAG as the default. For a *curated* personal context — under 100 MB even after a decade of daily use — RAG is the wrong tool. Direct file reads on a well-organized, hierarchical store outperform similarity search every time. lifekit reserves vector retrieval for one specific case (Tier 3 cold storage of external unstructured corpora) and gets out of the way for everything else. See [`docs/philosophy.md`](docs/philosophy.md) for the full memory-tier argument.
+
+Finally: proactivity needs structure, not just an LLM call on a cron. Daily digests that aren't grounded in pre-committed source curation, adversarial scoring, and outcome ledgers become noise within a week. lifekit codifies the discipline as schemas and conventions, so the *system* enforces what users would otherwise abandon.
 
 ## Why this exists
 
