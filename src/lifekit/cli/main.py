@@ -31,53 +31,63 @@ def cmd_init(target: Path | None, force: bool) -> None:
         click.echo(f"error: {e}", err=True)
         sys.exit(1)
     click.echo(f"initialized at {created}")
-    click.echo("next: edit domains/*.md and routines/workflows.yaml, then run `lifekit onboard`")
+    click.echo("next: edit domains/*.md and routines/workflows.yaml, then wire your runtime")
 
 
 @cli.command("status")
 def cmd_status() -> None:
-    """Report on the current ~/.life/ instance."""
+    """Report on the current instance."""
     root = life_root()
     if not root.exists():
         click.echo(f"no instance at {root}. run `lifekit init`.")
         sys.exit(1)
     domains = sorted((root / "domains").glob("*.md")) if (root / "domains").exists() else []
-    routines_file = root / "routines" / "workflows.yaml"
     click.echo(f"instance: {root}")
     click.echo(f"  domains: {len(domains)} file(s)")
-    click.echo(f"  routines config: {'present' if routines_file.exists() else 'missing'}")
+    click.echo(f"  routines config: {'present' if (root / 'routines' / 'workflows.yaml').exists() else 'missing'}")
     click.echo(f"  scout sources: {'present' if (root / 'scout' / 'sources.yaml').exists() else 'missing'}")
 
 
 @cli.command("onboard")
 def cmd_onboard() -> None:
-    """Interactive wizard to populate domain files (stub — not yet implemented)."""
+    """Interactive wizard to populate domain files (not yet implemented)."""
     click.echo("onboard: not yet implemented.")
-    click.echo("for now, edit ~/.life/domains/*.md by hand. see README.")
+    click.echo("for now, edit ~/.life/domains/*.md by hand. see docs/getting-started.md.")
 
 
 @cli.command("run")
-@click.argument("routine", required=True)
+@click.argument("routine")
 def cmd_run(routine: str) -> None:
-    """Run a routine ad-hoc (stub — wires into your orchestrator)."""
-    click.echo(f"run {routine}: not yet implemented.")
-    click.echo("planned: dispatch to your configured orchestrator adapter.")
+    """Run a routine ad-hoc. Currently supported: morning-brief."""
+    if routine in ("morning-brief", "morning_brief"):
+        from ..routines.morning_brief import render
+        click.echo(render(), nl=False)
+        return
+    click.echo(f"unknown routine: {routine}", err=True)
+    click.echo("supported: morning-brief", err=True)
+    sys.exit(2)
 
 
 @cli.command("scout")
-@click.option("--lens", type=click.Choice(["system", "personal-tooling", "both"]), default="both")
+@click.option("--limit", type=int, default=40)
 @click.option("--dry-run", is_flag=True)
-def cmd_scout(lens: str, dry_run: bool) -> None:
-    """Run scout pass (stub — see examples/jane-doe/ for the reference implementation)."""
-    click.echo(f"scout --lens={lens}: not yet implemented in this skeleton.")
-    click.echo("reference implementation at examples/jane-doe/scout/run_scout.py.")
+def cmd_scout(limit: int, dry_run: bool) -> None:
+    """Run a scout pass: fetch sources, score, write to ledger + proposals."""
+    from ..scout.run_scout import run
+    result = run(limit=limit, dry_run=dry_run)
+    click.echo(f"items={result['items']}  grades={result['grades']}")
+    if not dry_run:
+        click.echo(f"ledger +{result['ledger_added']}  proposals +{result['proposals_added']}")
 
 
 @cli.command("refresh")
-def cmd_refresh() -> None:
-    """Update last_updated dates and surface gaps from proposals (stub)."""
-    click.echo("refresh: not yet implemented in this skeleton.")
-    click.echo("reference implementation at examples/jane-doe/system/refresh.py.")
+@click.option("--dry-run", is_flag=True)
+def cmd_refresh(dry_run: bool) -> None:
+    """Update last_updated dates and surface gaps from proposals."""
+    from ..system.refresh import run
+    result = run(dry_run=dry_run)
+    click.echo(f"date updates: {result['date_changes']}")
+    click.echo(f"inferred gaps in gaps.md: {result['inferred_gaps']}")
 
 
 if __name__ == "__main__":
