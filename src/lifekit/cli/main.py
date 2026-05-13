@@ -49,10 +49,34 @@ def cmd_status() -> None:
 
 
 @cli.command("onboard")
-def cmd_onboard() -> None:
-    """Interactive wizard to populate domain files (not yet implemented)."""
-    click.echo("onboard: not yet implemented.")
-    click.echo("for now, edit ~/.life/domains/*.md by hand. see docs/getting-started.md.")
+@click.option("--from", "source", type=click.Path(path_type=Path), default=None,
+              help="Source file (default: ~/.claude/CLAUDE.md or equivalent)")
+@click.option("--target", type=click.Path(path_type=Path), default=None,
+              help="Instance to bootstrap (default: $LIFEKIT_ROOT or ~/.life/)")
+@click.option("--dry-run", is_flag=True, help="Show what would be written without touching files.")
+@click.option("--force", is_flag=True, help="Overwrite a populated instance.")
+def cmd_onboard(source: Path | None, target: Path | None, dry_run: bool, force: bool) -> None:
+    """Bootstrap domain files from a global-context source.
+
+    Looks for ~/.claude/CLAUDE.md by default. If ANTHROPIC_API_KEY is set
+    and the `anthropic` package is installed (pip install lifekit[llm]),
+    drafts each domain via Claude. Otherwise writes stub markers.
+    """
+    from ..core.onboard import onboard
+    try:
+        result = onboard(target=target, source=source, dry_run=dry_run, force=force)
+    except FileNotFoundError as e:
+        click.echo(f"refused: {e}", err=True)
+        sys.exit(1)
+    except FileExistsError as e:
+        click.echo(f"refused: {e}", err=True)
+        sys.exit(1)
+    click.echo(f"target:  {result.target}")
+    click.echo(f"source:  {result.source or '(none — stub mode)'}")
+    click.echo(f"LLM:     {'on' if result.used_llm else 'off (stub mode)'}")
+    click.echo(f"wrote:   {len(result.domains_written)} domain(s) {'[dry-run]' if dry_run else ''}")
+    for note in result.notes:
+        click.echo(f"note:    {note}")
 
 
 @cli.command("run")
