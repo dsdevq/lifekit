@@ -130,5 +130,26 @@ def cmd_emit(target_format: str, out_path: Path, timezone: str) -> None:
             click.echo("  (no routines enabled — emitter wrote empty workflows list)")
 
 
+@cli.group("curator")
+def curator_group() -> None:
+    """Queue-drain memory maintainer."""
+
+
+@curator_group.command("daemon")
+@click.option("--interval", type=int, default=None, help="Wake interval in seconds (overrides LIFEKIT_WAKE_INTERVAL_SECONDS)")
+def cmd_curator_daemon(interval: int | None) -> None:
+    """Run the curator daemon — drains queue.jsonl and updates domain files."""
+    import logging as _logging
+    from ..curator._core import WAKE_INTERVAL, loop
+    _logging.basicConfig(
+        level=__import__("os").getenv("LIFEKIT_LOG_LEVEL", "INFO"),
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    )
+    try:
+        loop(wake_interval=interval or WAKE_INTERVAL)
+    except KeyboardInterrupt:
+        pass
+
+
 if __name__ == "__main__":
     cli()

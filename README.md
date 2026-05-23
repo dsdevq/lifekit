@@ -64,8 +64,9 @@ lifekit codifies those lessons.
 
 ```
 src/lifekit/
-├── cli/                CLI entrypoint (lifekit init, run, scout, …)
+├── cli/                CLI entrypoint (lifekit init, run, scout, curator, …)
 ├── core/               schemas, templates loader, file IO
+├── curator/            queue-drain daemon — drains queue.jsonl, calls Claude, updates domain files
 └── adapters/           reference adapters (Ollama, etc.)
 
 templates/              what `lifekit init` copies into a new ~/.life/
@@ -89,6 +90,7 @@ lifekit onboard                    # interactive wizard, populates domains
 lifekit run morning-brief          # prints brief to stdout
 lifekit scout --lens system        # runs scout, writes to ledger + proposals
 lifekit refresh                    # updates last_updated + infers gaps
+lifekit curator daemon             # start the queue-drain daemon
 ```
 
 ## License
