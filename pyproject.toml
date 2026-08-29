@@ -58,11 +58,11 @@ llm = [
 lifekit = "lifekit.cli.main:cli"
 
 [project.urls]
-Homepage = "https://github.com/dsdevq/lifekit"
-Documentation = "https://github.com/dsdevq/lifekit/blob/main/docs/getting-started.md"
-Repository = "https://github.com/dsdevq/lifekit"
-"Bug Tracker" = "https://github.com/dsdevq/lifekit/issues"
-Philosophy = "https://github.com/dsdevq/lifekit/blob/main/docs/philosophy.md"
+Homepage = "https://github.com/lifekit-hq/lifekit"
+Documentation = "https://github.com/lifekit-hq/lifekit/blob/main/docs/getting-started.md"
+Repository = "https://github.com/lifekit-hq/lifekit"
+"Bug Tracker" = "https://github.com/lifekit-hq/lifekit/issues"
+Philosophy = "https://github.com/lifekit-hq/lifekit/blob/main/docs/philosophy.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lifekit"]
@@ -79,7 +79,8 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "PL", "RUF"]
-ignore = ["PLR0913", "PLR2004"]
+# PLC0415: lazy imports in the CLI (startup speed) and tests (env-sensitive imports) are deliberate
+ignore = ["PLR0913", "PLR2004", "PLC0415"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004", "S101"]

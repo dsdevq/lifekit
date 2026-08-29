@@ -61,7 +61,14 @@ def _fetch_hn(limit: int = 15) -> list[Item]:
         if not s or s.get("score", 0) < 100:
             continue
         url = s.get("url") or f"https://news.ycombinator.com/item?id={sid}"
-        items.append(Item(title=s.get("title", "(no title)"), url=url, source="hackernews", summary=(s.get("text", "") or "")[:200]))
+        items.append(
+            Item(
+                title=s.get("title", "(no title)"),
+                url=url,
+                source="hackernews",
+                summary=(s.get("text", "") or "")[:200],
+            )
+        )
     return items
 
 
@@ -78,19 +85,37 @@ def _fetch_rss(url: str, source_name: str, limit: int = 10) -> list[Item]:
         return []
     items: list[Item] = []
     for it in root.iter("item"):
-        t = it.find("title"); l = it.find("link"); d = it.find("description")
-        if t is None or l is None:
+        t = it.find("title")
+        link_el = it.find("link")
+        d = it.find("description")
+        if t is None or link_el is None:
             continue
-        items.append(Item(title=(t.text or "").strip(), url=(l.text or "").strip(), source=source_name, summary=((d.text or "") if d is not None else "")[:200]))
+        items.append(
+            Item(
+                title=(t.text or "").strip(),
+                url=(link_el.text or "").strip(),
+                source=source_name,
+                summary=((d.text or "") if d is not None else "")[:200],
+            )
+        )
         if len(items) >= limit:
             break
     if not items:
         ns = "{http://www.w3.org/2005/Atom}"
         for it in root.iter(f"{ns}entry"):
-            t = it.find(f"{ns}title"); l = it.find(f"{ns}link"); s = it.find(f"{ns}summary")
-            if t is None or l is None:
+            t = it.find(f"{ns}title")
+            link_el = it.find(f"{ns}link")
+            s = it.find(f"{ns}summary")
+            if t is None or link_el is None:
                 continue
-            items.append(Item(title=(t.text or "").strip(), url=l.attrib.get("href", ""), source=source_name, summary=((s.text or "") if s is not None else "")[:200]))
+            items.append(
+                Item(
+                    title=(t.text or "").strip(),
+                    url=link_el.attrib.get("href", ""),
+                    source=source_name,
+                    summary=((s.text or "") if s is not None else "")[:200],
+                )
+            )
             if len(items) >= limit:
                 break
     return items
@@ -108,7 +133,14 @@ def _fetch_reddit(sub: str, limit: int = 10) -> list[Item]:
         d = c.get("data", {})
         if d.get("score", 0) < 50:
             continue
-        items.append(Item(title=d.get("title", "(no title)"), url="https://www.reddit.com" + d.get("permalink", ""), source=f"reddit:{sub}", summary=(d.get("selftext", "") or "")[:200]))
+        items.append(
+            Item(
+                title=d.get("title", "(no title)"),
+                url="https://www.reddit.com" + d.get("permalink", ""),
+                source=f"reddit:{sub}",
+                summary=(d.get("selftext", "") or "")[:200],
+            )
+        )
     return items
 
 
@@ -117,13 +149,75 @@ def _keywords_from(path: Path) -> set[str]:
         return set()
     text = path.read_text(encoding="utf-8").lower()
     tokens = re.findall(r"[a-z][a-z0-9-]{3,}", text)
-    stop = {"this", "that", "with", "from", "have", "will", "your", "what", "which", "their", "they", "them", "into", "more", "less", "than", "then", "when", "where", "would", "could", "should", "about", "after", "before", "been", "being", "very", "just", "like", "make", "made", "does", "doing", "much", "many", "some", "most", "such", "also", "only", "every", "each", "other", "name", "summary", "last", "updated", "tags", "active", "deferred", "current", "file", "files", "phase", "phases", "plan"}
+    stop = {
+        "this",
+        "that",
+        "with",
+        "from",
+        "have",
+        "will",
+        "your",
+        "what",
+        "which",
+        "their",
+        "they",
+        "them",
+        "into",
+        "more",
+        "less",
+        "than",
+        "then",
+        "when",
+        "where",
+        "would",
+        "could",
+        "should",
+        "about",
+        "after",
+        "before",
+        "been",
+        "being",
+        "very",
+        "just",
+        "like",
+        "make",
+        "made",
+        "does",
+        "doing",
+        "much",
+        "many",
+        "some",
+        "most",
+        "such",
+        "also",
+        "only",
+        "every",
+        "each",
+        "other",
+        "name",
+        "summary",
+        "last",
+        "updated",
+        "tags",
+        "active",
+        "deferred",
+        "current",
+        "file",
+        "files",
+        "phase",
+        "phases",
+        "plan",
+    }
     return {t for t in tokens if t not in stop}
 
 
 def _score(items: list[Item], root: Path) -> None:
-    system_kw = _keywords_from(root / "system" / "gaps.md") | _keywords_from(root / "system" / "architecture.md")
-    personal_kw = _keywords_from(root / "domains" / "engineering.md") | _keywords_from(root / "domains" / "learning.md")
+    system_kw = _keywords_from(root / "system" / "gaps.md") | _keywords_from(
+        root / "system" / "architecture.md"
+    )
+    personal_kw = _keywords_from(root / "domains" / "engineering.md") | _keywords_from(
+        root / "domains" / "learning.md"
+    )
     for it in items:
         blob = f"{it.title} {it.summary}".lower()
         toks = set(blob.split())
@@ -133,7 +227,11 @@ def _score(items: list[Item], root: Path) -> None:
         it.score_system = sys_hits / denom
         it.score_personal = per_hits / denom
         it.lens = "system" if it.score_system >= it.score_personal else "personal-tooling"
-        it.grade = "worth-looking-at" if it.best_score >= 0.04 else ("maybe" if it.best_score >= 0.02 else "probably-noise")
+        it.grade = (
+            "worth-looking-at"
+            if it.best_score >= 0.04
+            else ("maybe" if it.best_score >= 0.02 else "probably-noise")
+        )
 
 
 def _append_ledger(items: list[Item], today: dt.date, root: Path) -> int:
@@ -150,7 +248,8 @@ def _append_ledger(items: list[Item], today: dt.date, root: Path) -> int:
             f"- **Lens:** {it.lens}",
             f"- **Source:** {it.url}",
             f"- **Initial grade:** {it.grade}",
-            f"- **Why flagged:** heuristic overlap (system={it.score_system:.3f}, personal={it.score_personal:.3f})",
+            f"- **Why flagged:** heuristic overlap "
+            f"(system={it.score_system:.3f}, personal={it.score_personal:.3f})",
             "- **Followup (7d):** _pending_",
             "- **Followup (30d):** _pending_",
             "",
@@ -223,7 +322,12 @@ def run(*, limit: int = 40, dry_run: bool = False, root: Path | None = None) -> 
         new_ledger = _append_ledger(items, today, root)
         new_props = _append_proposals(items, today, root)
 
-    return {"items": len(items), "grades": grades, "ledger_added": new_ledger, "proposals_added": new_props}
+    return {
+        "items": len(items),
+        "grades": grades,
+        "ledger_added": new_ledger,
+        "proposals_added": new_props,
+    }
 
 
 def main() -> None:

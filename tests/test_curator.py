@@ -17,9 +17,7 @@ import lifekit.curator._core as curator
 
 class ProcessQueueDefensiveTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.tmpdir = Path(
-            self.enterContext(__import__("tempfile").TemporaryDirectory())
-        )
+        self.tmpdir = Path(self.enterContext(__import__("tempfile").TemporaryDirectory()))
         self.queue_file = self.tmpdir / "queue.jsonl"
         self.dead_letter = self.tmpdir / "queue.dead-letter.jsonl"
 
@@ -44,7 +42,7 @@ class ProcessQueueDefensiveTests(unittest.TestCase):
             self.fail(f"process_queue raised on missing-goal entry: {exc!r}")
 
         self.assertTrue(self.dead_letter.exists(), "poison entry must be quarantined")
-        dead = [json.loads(l) for l in self.dead_letter.read_text().splitlines() if l.strip()]
+        dead = [json.loads(ln) for ln in self.dead_letter.read_text().splitlines() if ln.strip()]
         self.assertEqual(len(dead), 1)
         self.assertEqual(dead[0]["entry"]["id"], "aaaaaaaa-1111")
         self.assertEqual(self.queue_file.read_text().strip(), "")
@@ -58,24 +56,26 @@ class ProcessQueueDefensiveTests(unittest.TestCase):
             self.fail(f"process_queue raised on missing-id entry: {exc!r}")
 
         self.assertTrue(self.dead_letter.exists())
-        dead = [json.loads(l) for l in self.dead_letter.read_text().splitlines() if l.strip()]
+        dead = [json.loads(ln) for ln in self.dead_letter.read_text().splitlines() if ln.strip()]
         self.assertEqual(len(dead), 1)
         self.assertNotIn("id", dead[0]["entry"])
 
     def test_mixed_good_and_poison_entries(self) -> None:
         """Good entries are processed; poison entries are isolated."""
-        self._write_entries([
-            {"id": "good1111-2222", "goal": "g", "response": "r"},
-            {"response": "no goal here"},
-            {"id": "good2222-3333", "goal": "g2", "response": "r2"},
-            {"id": "incomplete", "goal": "only goal"},
-        ])
+        self._write_entries(
+            [
+                {"id": "good1111-2222", "goal": "g", "response": "r"},
+                {"response": "no goal here"},
+                {"id": "good2222-3333", "goal": "g2", "response": "r2"},
+                {"id": "incomplete", "goal": "only goal"},
+            ]
+        )
 
         curator.process_queue()
 
         self.assertEqual(curator.claude_run.call_count, 2)
         self.assertEqual(self.queue_file.read_text().strip(), "")
-        dead = [json.loads(l) for l in self.dead_letter.read_text().splitlines() if l.strip()]
+        dead = [json.loads(ln) for ln in self.dead_letter.read_text().splitlines() if ln.strip()]
         self.assertEqual(len(dead), 2)
 
     def test_non_string_id_does_not_raise(self) -> None:

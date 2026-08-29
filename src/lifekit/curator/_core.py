@@ -19,7 +19,7 @@ import os
 import subprocess
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ..core.paths import life_root
@@ -155,6 +155,7 @@ For each domain file that has a non-empty `gaps:` field (pipe-separated question
 def claude_run(prompt: str, timeout: int = CLAUDE_TIMEOUT) -> str:
     result = subprocess.run(
         [CLAUDE_BIN, "--print", "--permission-mode", "bypassPermissions"],
+        check=False,
         input=prompt,
         cwd=str(LIFE_DIR),
         capture_output=True,
@@ -162,9 +163,7 @@ def claude_run(prompt: str, timeout: int = CLAUDE_TIMEOUT) -> str:
         timeout=timeout,
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"claude CLI failed (exit {result.returncode}): {result.stderr[:500]}"
-        )
+        raise RuntimeError(f"claude CLI failed (exit {result.returncode}): {result.stderr[:500]}")
     return result.stdout
 
 
@@ -176,7 +175,7 @@ def enqueue(goal: str, response: str) -> None:
         "id": str(uuid.uuid4()),
         "goal": goal,
         "response": response,
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
     }
     try:
         QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -205,7 +204,7 @@ def _quarantine(entry: object) -> None:
     try:
         DEAD_LETTER_FILE.parent.mkdir(parents=True, exist_ok=True)
         record = {
-            "quarantined_at": datetime.now(timezone.utc).isoformat(),
+            "quarantined_at": datetime.now(UTC).isoformat(),
             "entry": entry,
         }
         with DEAD_LETTER_FILE.open("a") as f:
@@ -231,8 +230,8 @@ def process_queue() -> None:
         raw = QUEUE_FILE.read_text()
 
     entries: list = []
-    for line in raw.splitlines():
-        line = line.strip()
+    for raw_line in raw.splitlines():
+        line = raw_line.strip()
         if not line:
             continue
         try:
@@ -268,7 +267,7 @@ def consolidation_due() -> bool:
         return True
     try:
         last = float(CONSOLIDATION_MARKER.read_text().strip())
-        return (datetime.now(timezone.utc).timestamp() - last) > CONSOLIDATION_INTERVAL
+        return (datetime.now(UTC).timestamp() - last) > CONSOLIDATION_INTERVAL
     except Exception:
         return True
 
@@ -276,11 +275,9 @@ def consolidation_due() -> bool:
 def run_consolidation() -> None:
     logger.info("dream cycle starting")
     try:
-        claude_run(
-            CONSOLIDATE_PROMPT.format(life_dir=LIFE_DIR), timeout=CLAUDE_TIMEOUT * 2
-        )
+        claude_run(CONSOLIDATE_PROMPT.format(life_dir=LIFE_DIR), timeout=CLAUDE_TIMEOUT * 2)
         CONSOLIDATION_MARKER.parent.mkdir(parents=True, exist_ok=True)
-        CONSOLIDATION_MARKER.write_text(str(datetime.now(timezone.utc).timestamp()))
+        CONSOLIDATION_MARKER.write_text(str(datetime.now(UTC).timestamp()))
         logger.info("dream cycle complete")
     except Exception as exc:
         logger.warning("dream cycle failed — %s", exc)

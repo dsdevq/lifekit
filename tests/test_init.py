@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from lifekit.core.init import init_instance
@@ -42,12 +41,14 @@ def test_init_force_overwrites(tmp_path: Path) -> None:
 def test_lifekit_root_env_override(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("LIFEKIT_ROOT", str(tmp_path / "custom"))
     from lifekit.core.paths import life_root
+
     assert life_root() == (tmp_path / "custom").resolve()
 
 
 def test_state_dir_env_override(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("LIFEKIT_STATE_DIR", str(tmp_path / "state"))
     from lifekit.core.paths import state_dir
+
     assert state_dir() == (tmp_path / "state").resolve()
 
 
@@ -55,6 +56,7 @@ def test_state_dir_xdg_fallback(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("LIFEKIT_STATE_DIR", raising=False)
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "xdg"))
     from lifekit.core.paths import state_dir
+
     assert state_dir() == (tmp_path / "xdg").resolve() / "lifekit"
 
 
@@ -63,4 +65,5 @@ def test_state_dir_default(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("XDG_STATE_HOME", raising=False)
     monkeypatch.setenv("HOME", str(tmp_path))
     from lifekit.core.paths import state_dir
+
     assert state_dir() == tmp_path / ".local" / "state" / "lifekit"

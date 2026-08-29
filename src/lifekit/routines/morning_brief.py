@@ -10,8 +10,8 @@ from __future__ import annotations
 import datetime as dt
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import yaml
 
@@ -118,13 +118,17 @@ def _breakfast_section(root: Path) -> list[str]:
     if prefs:
         m = re.search(r"\*\*Breakfast[^\*]*\*\*\s*(.*?)(?=\n\*\*|\Z)", prefs, flags=re.DOTALL)
         if m:
-            options = [ln.strip() for ln in m.group(1).strip().splitlines() if ln.strip().startswith("-")]
+            options = [
+                ln.strip() for ln in m.group(1).strip().splitlines() if ln.strip().startswith("-")
+            ]
             if options:
                 out.append("Typical breakfast options:")
                 out.extend(f"  {ln}" for ln in options[:3])
 
     if not out:
-        return ["_(nutrition profile present but no goals/breakfast captured — fill those subsections)_"]
+        return [
+            "_(nutrition profile present but no goals/breakfast captured — fill those subsections)_"
+        ]
 
     out.append("→ Suggestion composed by orchestrator at runtime; static brief stops here.")
     return out

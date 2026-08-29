@@ -1,6 +1,6 @@
 # lifekit
 
-[![CI](https://github.com/dsdevq/lifekit/actions/workflows/test.yml/badge.svg)](https://github.com/dsdevq/lifekit/actions/workflows/test.yml)
+[![CI](https://github.com/lifekit-hq/lifekit/actions/workflows/test.yml/badge.svg)](https://github.com/lifekit-hq/lifekit/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Status](https://img.shields.io/badge/status-pre--alpha-orange.svg)](#status)

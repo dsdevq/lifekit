@@ -46,7 +46,8 @@ def test_refresh_leaves_current_dates_alone(tmp_path: Path) -> None:
     # career.md should not be among the changes
     assert result["date_changes"] == 0 or all(
         # other domains may still get bumped but career.md should not
-        True for _ in [None]
+        True
+        for _ in [None]
     )
 
 
@@ -56,8 +57,7 @@ def test_refresh_gap_inference_idempotent(tmp_path: Path) -> None:
     # add a `Status: new` proposal
     proposals = target / "system" / "proposals.md"
     proposals.write_text(
-        proposals.read_text()
-        + "\n\n### 2026-05-13-test-thing\n"
+        proposals.read_text() + "\n\n### 2026-05-13-test-thing\n"
         "- **Status:** new\n"
         "- **Lens:** system\n"
         "- **Source:** https://example.com\n"

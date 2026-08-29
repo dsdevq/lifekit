@@ -54,7 +54,9 @@ def translate(canonical: dict[str, Any], *, timezone: str = DEFAULT_TIMEZONE) ->
     return {"workflows": out_workflows}
 
 
-def emit(target: Path, *, root: Path | None = None, timezone: str = DEFAULT_TIMEZONE) -> tuple[Path, int]:
+def emit(
+    target: Path, *, root: Path | None = None, timezone: str = DEFAULT_TIMEZONE
+) -> tuple[Path, int]:
     """Read ~/.life/routines/workflows.yaml, translate, write to `target`.
 
     Returns (target_path, enabled_count).
