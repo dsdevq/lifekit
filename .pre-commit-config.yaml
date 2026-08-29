@@ -1,0 +1,16 @@
+# Mirrors the CI gates in .github/workflows/test.yml — install with:
+#   pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.5
+    hooks:
+      - id: ruff-check # CI: ruff check .
+      - id: ruff-format # CI: ruff format --check .
+  - repo: local
+    hooks:
+      - id: pytest # CI: pytest -q (the suite runs in <1s)
+        name: pytest
+        entry: python -m pytest -q
+        language: system
+        pass_filenames: false
+        types: [python]
