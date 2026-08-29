@@ -5,7 +5,7 @@
 ## Install (from source, for now)
 
 ```bash
-git clone https://github.com/dsdevq/lifekit
+git clone https://github.com/lifekit-hq/lifekit
 cd lifekit
 pip install -e .
 ```

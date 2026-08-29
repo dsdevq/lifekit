@@ -53,7 +53,7 @@ Replaceability is the other thing lifekit insists on. Every swap-eligible third-
 
 It's a directory structure plus a set of invariants. The invariants are the value: portability (POSIX, plain text), separation (knowledge vs runtime), discipline (curation > capability), reversibility (symlinks over rewrites). Without those, you have another half-built memory system. With them, you have something that survives the next three rounds of "the framework I built on shipped a breaking change."
 
-The repo is [github.com/dsdevq/lifekit](https://github.com/dsdevq/lifekit). Pre-alpha. MIT. Ideas/PRs welcome — especially adapters for runtimes I'm not using yet.
+The repo is [github.com/lifekit-hq/lifekit](https://github.com/lifekit-hq/lifekit). Pre-alpha. MIT. Ideas/PRs welcome — especially adapters for runtimes I'm not using yet.
 
 ---
 
