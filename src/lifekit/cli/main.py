@@ -18,7 +18,12 @@ def cli() -> None:
 
 
 @cli.command("init")
-@click.option("--target", type=click.Path(path_type=Path), default=None, help="Where to scaffold (default: ~/.life/)")
+@click.option(
+    "--target",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Where to scaffold (default: ~/.life/)",
+)
 @click.option("--force", is_flag=True, help="Overwrite an existing non-empty instance.")
 def cmd_init(target: Path | None, force: bool) -> None:
     """Create a new lifekit instance from bundled templates."""
@@ -44,15 +49,27 @@ def cmd_status() -> None:
     domains = sorted((root / "domains").glob("*.md")) if (root / "domains").exists() else []
     click.echo(f"instance: {root}")
     click.echo(f"  domains: {len(domains)} file(s)")
-    click.echo(f"  routines config: {'present' if (root / 'routines' / 'workflows.yaml').exists() else 'missing'}")
-    click.echo(f"  scout sources: {'present' if (root / 'scout' / 'sources.yaml').exists() else 'missing'}")
+    routines_present = (root / "routines" / "workflows.yaml").exists()
+    click.echo(f"  routines config: {'present' if routines_present else 'missing'}")
+    click.echo(
+        f"  scout sources: {'present' if (root / 'scout' / 'sources.yaml').exists() else 'missing'}"
+    )
 
 
 @cli.command("onboard")
-@click.option("--from", "source", type=click.Path(path_type=Path), default=None,
-              help="Source file (default: ~/.claude/CLAUDE.md or equivalent)")
-@click.option("--target", type=click.Path(path_type=Path), default=None,
-              help="Instance to bootstrap (default: $LIFEKIT_ROOT or ~/.life/)")
+@click.option(
+    "--from",
+    "source",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Source file (default: ~/.claude/CLAUDE.md or equivalent)",
+)
+@click.option(
+    "--target",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Instance to bootstrap (default: $LIFEKIT_ROOT or ~/.life/)",
+)
 @click.option("--dry-run", is_flag=True, help="Show what would be written without touching files.")
 @click.option("--force", is_flag=True, help="Overwrite a populated instance.")
 def cmd_onboard(source: Path | None, target: Path | None, dry_run: bool, force: bool) -> None:
@@ -63,6 +80,7 @@ def cmd_onboard(source: Path | None, target: Path | None, dry_run: bool, force: 
     drafts each domain via Claude. Otherwise writes stub markers.
     """
     from ..core.onboard import onboard
+
     try:
         result = onboard(target=target, source=source, dry_run=dry_run, force=force)
     except FileNotFoundError as e:
@@ -85,6 +103,7 @@ def cmd_run(routine: str) -> None:
     """Run a routine ad-hoc. Currently supported: morning-brief."""
     if routine in ("morning-brief", "morning_brief"):
         from ..routines.morning_brief import render
+
         click.echo(render(), nl=False)
         return
     click.echo(f"unknown routine: {routine}", err=True)
@@ -98,6 +117,7 @@ def cmd_run(routine: str) -> None:
 def cmd_scout(limit: int, dry_run: bool) -> None:
     """Run a scout pass: fetch sources, score, write to ledger + proposals."""
     from ..scout.run_scout import run
+
     result = run(limit=limit, dry_run=dry_run)
     click.echo(f"items={result['items']}  grades={result['grades']}")
     if not dry_run:
@@ -109,6 +129,7 @@ def cmd_scout(limit: int, dry_run: bool) -> None:
 def cmd_refresh(dry_run: bool) -> None:
     """Update last_updated dates and surface gaps from proposals."""
     from ..system.refresh import run
+
     result = run(dry_run=dry_run)
     click.echo(f"date updates: {result['date_changes']}")
     click.echo(f"inferred gaps in gaps.md: {result['inferred_gaps']}")
@@ -116,13 +137,19 @@ def cmd_refresh(dry_run: bool) -> None:
 
 @cli.command("emit")
 @click.argument("target_format", type=click.Choice(["langgraph-workflows"]))
-@click.option("--to", "out_path", type=click.Path(path_type=Path), required=True,
-              help="Output file path (e.g. ~/projects/dev-agent/workflows.yaml)")
+@click.option(
+    "--to",
+    "out_path",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output file path (e.g. ~/projects/dev-agent/workflows.yaml)",
+)
 @click.option("--timezone", default="Europe/Dublin", show_default=True)
 def cmd_emit(target_format: str, out_path: Path, timezone: str) -> None:
     """Emit canonical workflows.yaml into a runtime-specific format."""
     if target_format == "langgraph-workflows":
         from ..emitters.langgraph import emit
+
         path, n = emit(out_path.expanduser(), timezone=timezone)
         click.echo(f"wrote {path}")
         click.echo(f"  enabled routines: {n}")
@@ -136,11 +163,18 @@ def curator_group() -> None:
 
 
 @curator_group.command("daemon")
-@click.option("--interval", type=int, default=None, help="Wake interval in seconds (overrides LIFEKIT_WAKE_INTERVAL_SECONDS)")
+@click.option(
+    "--interval",
+    type=int,
+    default=None,
+    help="Wake interval in seconds (overrides LIFEKIT_WAKE_INTERVAL_SECONDS)",
+)
 def cmd_curator_daemon(interval: int | None) -> None:
     """Run the curator daemon — drains queue.jsonl and updates domain files."""
     import logging as _logging
+
     from ..curator._core import WAKE_INTERVAL, loop
+
     _logging.basicConfig(
         level=__import__("os").getenv("LIFEKIT_LOG_LEVEL", "INFO"),
         format="%(asctime)s %(name)s %(levelname)s %(message)s",

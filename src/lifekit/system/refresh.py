@@ -19,7 +19,9 @@ def _fs_mtime(path: Path) -> dt.date:
     return dt.date.fromtimestamp(path.stat().st_mtime)
 
 
-def refresh_domain_dates(today: dt.date, root: Path, *, dry_run: bool = False) -> list[tuple[Path, str, str]]:
+def refresh_domain_dates(
+    today: dt.date, root: Path, *, dry_run: bool = False
+) -> list[tuple[Path, str, str]]:
     changes: list[tuple[Path, str, str]] = []
     domains = root / "domains"
     if not domains.exists():
@@ -89,7 +91,11 @@ def update_gaps_from_proposals(today: dt.date, root: Path, *, dry_run: bool = Fa
         section_lines.append(f"- **{lens}** — {slug} — {why}")
     new_section = "\n".join(section_lines) + "\n"
     pattern = re.compile(rf"\n{re.escape(INFERRED_HEADER)}.*?(?=\n## |\Z)", flags=re.DOTALL)
-    new_text = pattern.sub(new_section, text) if pattern.search(text) else text.rstrip() + "\n" + new_section
+    new_text = (
+        pattern.sub(new_section, text)
+        if pattern.search(text)
+        else text.rstrip() + "\n" + new_section
+    )
     if not dry_run:
         gaps.write_text(new_text, encoding="utf-8")
     return len(new_props)

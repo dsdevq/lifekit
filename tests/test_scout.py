@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from lifekit.core.init import init_instance
 from lifekit.scout import run_scout
 
@@ -64,15 +62,16 @@ def test_scout_dedups_against_existing_ledger(tmp_path: Path, monkeypatch) -> No
     init_instance(target=target)
     # pre-seed ledger with one of the URLs
     ledger = target / "scout" / "ledger.md"
-    ledger.write_text(ledger.read_text() + "\n\n### 2026-05-13 — LangGraph 0.9 ships\nSource: https://example.com/lg\n")
+    ledger.write_text(
+        ledger.read_text()
+        + "\n\n### 2026-05-13 — LangGraph 0.9 ships\nSource: https://example.com/lg\n"
+    )
 
     monkeypatch.setattr(run_scout, "_fetch_hn", lambda **kw: _fake_items())
     monkeypatch.setattr(run_scout, "_fetch_rss", lambda *a, **kw: [])
     monkeypatch.setattr(run_scout, "_fetch_reddit", lambda *a, **kw: [])
 
-    before_len = len(ledger.read_text())
     result = run_scout.run(limit=10, dry_run=False, root=target)
-    after_len = len(ledger.read_text())
 
     # only the new (non-duplicate) item should land — the langgraph URL is in existing
     assert result["items"] == 2

@@ -124,9 +124,7 @@ def onboard(
     source_text = source.read_text(encoding="utf-8") if source else ""
 
     if not target.exists() or not (target / "domains").exists():
-        raise FileNotFoundError(
-            f"no lifekit instance at {target}. Run `lifekit init` first."
-        )
+        raise FileNotFoundError(f"no lifekit instance at {target}. Run `lifekit init` first.")
 
     # Check if instance already has populated domains
     populated = False
